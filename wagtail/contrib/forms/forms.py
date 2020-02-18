@@ -155,3 +155,18 @@ class WagtailAdminFormPageForm(WagtailAdminPageForm):
                                 'label',
                                 django.forms.ValidationError(_('There is another field with the label %s, please change one of them.' % label))
                             )
+
+
+class SubmissionReplyForm(django.forms.Form):
+
+    to_address = django.forms.EmailField(
+        help_text=_('The email address to send this email to'),
+    )
+    reply_address = django.forms.EmailField(
+        help_text=_('The email address the recipient will reply to'),
+    )
+    message = django.forms.CharField(
+        widget=django.forms.Textarea(
+            attrs={"rows":5, "cols":20}
+        )
+    )

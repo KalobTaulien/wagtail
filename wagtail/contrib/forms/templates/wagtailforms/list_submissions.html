@@ -17,6 +17,9 @@
                   {% if heading.order %}<a href="?order_by={% if heading.order == 'ascending' %}-{% endif %}{{ heading.name }}">{{ heading.label }}</a>{% else %}{{ heading.label }}{% endif %}
                 </th>
             {% endfor %}
+            {% if has_email_field %}
+                <th>{% trans "Reply" %}</th>
+            {% endif %}
         </tr>
     </thead>
     <tbody>
@@ -30,6 +33,11 @@
                         {{ cell }}
                     </td>
                 {% endfor %}
+                {% if row.has_email_field %}
+                    <td>
+                        <a href="{% url 'wagtailforms:reply_submissions' form_page.id row.model_id %}" class="button button-small button-secondary">{% trans "Email" %}</a>
+                    </td>
+                {% endif %}
             </tr>
         {% endfor %}
     </tbody>

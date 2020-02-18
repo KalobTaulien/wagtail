@@ -2,10 +2,12 @@ import csv
 import datetime
 
 from django.core.exceptions import PermissionDenied
+from django.core.mail import EmailMessage
 from django.core.paginator import InvalidPage
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.encoding import smart_str
+from django.utils.translation import gettext as _
 from django.utils.translation import ungettext
 from django.views.generic import ListView, TemplateView
 
@@ -13,6 +15,8 @@ from wagtail.admin import messages
 from wagtail.contrib.forms.forms import SelectDateForm
 from wagtail.contrib.forms.utils import get_forms_for_user
 from wagtail.core.models import Page
+
+from .forms import SubmissionReplyForm
 
 
 def get_submissions_list_view(request, *args, **kwargs):
@@ -70,6 +74,93 @@ class FormPagesListView(SafePaginateListView):
                 ordering = (ordering,)
             queryset = queryset.order_by(*ordering)
         return queryset
+
+
+class ReplySubmissionView(TemplateView):
+    """Reply to a contact form submission"""
+    template_name = 'wagtailforms/reply.html'
+    success_url = 'wagtailforms:list_submissions'
+    page = None
+
+    def get_success_url(self):
+        """Returns the success URL to redirect to after a successful deletion"""
+        return self.success_url
+
+    def dispatch(self, request, *args, **kwargs):
+        """ Check permissions, set the page and submissions, handle delete """
+        page_id = kwargs.get('page_id')
+        submission_id = kwargs.get('submission_id')
+
+        if not get_forms_for_user(self.request.user).filter(id=page_id).exists():
+            raise PermissionDenied
+
+        self.page = get_object_or_404(Page, id=page_id).specific
+
+        submission_class = self.page.get_submission_class()
+        submission = submission_class._default_manager.get(id=submission_id)
+
+        # Look for email field
+        email_field_name = False
+        for field in self.page.get_form_fields():
+            if field.field_type == 'email':
+                email_field_name = field.clean_name
+
+        if not email_field_name:
+            # There is no email field in this form. Can't reply to someone who
+            # doesn't have an email address
+            raise PermissionDenied
+
+        # Dictionary comprehension to generate name-to-label keys
+        data_fields = { name: label for name, label in self.page.get_data_fields() }
+        submission_data = submission.get_data()
+        self.submission = ((data_fields.get(key), value) for key, value in submission_data.items())
+
+        self.form = SubmissionReplyForm(
+            request.POST or None,
+            initial={
+                'to_address': submission_data.get(email_field_name),
+                'reply_address': self.page.from_address,
+            },
+        )
+        if request.method == 'POST' and self.form.is_valid():
+
+            email_success = False
+            try:
+                email = EmailMessage(
+                    self.page.subject,
+                    self.form.cleaned_data["message"],
+                    self.page.from_address,
+                    [self.form.cleaned_data["to_address"]],
+                    reply_to=[self.form.cleaned_data["reply_address"]],
+                )
+                email.send()
+                email_success = True
+            except TypeError:
+                messages.warning(
+                    self.request,
+                    _("Invalid to, from, or reply addresses"),
+                )
+
+            if email_success:
+                messages.success(
+                    self.request,
+                    _('Reply was email sent'),
+                )
+                return redirect(self.get_success_url(), page_id)
+
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        """Get the context for this view"""
+        context = super().get_context_data(**kwargs)
+
+        context.update({
+            'page': self.page,
+            'submission': self.submission,
+            'form': self.form,
+        })
+
+        return context
 
 
 class DeleteSubmissionsView(TemplateView):
@@ -253,7 +344,14 @@ class SubmissionsListView(SafePaginateListView):
         context = super().get_context_data(**kwargs)
         submissions = context[self.context_object_name]
         data_fields = self.form_page.get_data_fields()
+        data_fields_dict = { name: label for name, label in data_fields }
         data_rows = []
+
+        # Look for email field
+        has_email_field = False
+        for field in self.form_page.get_form_fields():
+            if field.field_type == 'email':
+                has_email_field = True
 
         if self.is_csv_export:
             # Build data_rows as list of lists containing formatted data values
@@ -280,7 +378,8 @@ class SubmissionsListView(SafePaginateListView):
                     data_row.append(val)
                 data_rows.append({
                     'model_id': submission.id,
-                    'fields': data_row
+                    'fields': data_row,
+                    'has_email_field': has_email_field,
                 })
             # Build data_headings as list of dicts containing model_id and fields
             ordering_by_field = self.get_validated_ordering()
@@ -306,6 +405,7 @@ class SubmissionsListView(SafePaginateListView):
             'data_headings': data_headings,
             'data_rows': data_rows,
             'submissions': submissions,
+            'has_email_field': has_email_field,
         })
 
         return context
