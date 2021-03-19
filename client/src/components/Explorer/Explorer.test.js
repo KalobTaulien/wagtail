@@ -40,12 +40,12 @@ describe('Explorer', () => {
     });
 
     it('gotoPage', () => {
-      wrapper.prop('gotoPage')();
+      wrapper.dive().prop('gotoPage')();
       expect(store.dispatch).toHaveBeenCalled();
     });
 
     it('onClose', () => {
-      wrapper.prop('onClose')();
+      wrapper.dive().prop('onClose')();
       expect(store.dispatch).toHaveBeenCalled();
     });
   });

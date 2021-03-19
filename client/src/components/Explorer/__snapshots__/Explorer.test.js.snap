@@ -1,32 +1,33 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Explorer renders 1`] = `
-<Explorer
-  currentPageId={null}
-  depth={0}
-  gotoPage={[Function]}
-  isVisible={false}
-  nodes={Object {}}
-  onClose={[Function]}
-  store={
-    Object {
-      "dispatch": [Function],
-      "getState": [Function],
-      "replaceReducer": [Function],
-      "subscribe": [Function],
-      Symbol(observable): [Function],
-    }
-  }
-  storeSubscription={
-    Subscription {
-      "listeners": Object {
-        "clear": [Function],
-        "get": [Function],
-        "notify": [Function],
+<ContextProvider
+  value={null}
+>
+  <Explorer
+    currentPageId={null}
+    depth={0}
+    gotoPage={[Function]}
+    isVisible={false}
+    nodes={Object {}}
+    onClose={[Function]}
+    store={
+      Object {
+        "dispatch": [Function],
+        "getState": [Function],
+        "replaceReducer": [Function],
         "subscribe": [Function],
-      },
-      "onStateChange": [Function],
-      "parentSub": undefined,
+        Symbol(observable): [Function],
+      }
+    }
+  />
+</ContextProvider>
+`;
+
+exports[`Explorer renders 2`] = `
+<ContextProvider
+  value={
+    Object {
       "store": Object {
         "dispatch": [Function],
         "getState": [Function],
@@ -34,15 +35,76 @@ exports[`Explorer renders 1`] = `
         "subscribe": [Function],
         Symbol(observable): [Function],
       },
-      "unsubscribe": [Function],
+      "subscription": Subscription {
+        "handleChangeWrapper": [Function],
+        "listeners": Object {
+          "notify": [Function],
+        },
+        "onStateChange": [Function],
+        "parentSub": undefined,
+        "store": Object {
+          "dispatch": [Function],
+          "getState": [Function],
+          "replaceReducer": [Function],
+          "subscribe": [Function],
+          Symbol(observable): [Function],
+        },
+        "unsubscribe": null,
+      },
     }
   }
-/>
+>
+  <Connect(Explorer) />
+</ContextProvider>
 `;
 
-exports[`Explorer renders 2`] = `<Connect(Explorer) />`;
-
 exports[`Explorer visible 1`] = `
+<ContextProvider
+  value={null}
+>
+  <Explorer
+    currentPageId={1}
+    depth={0}
+    gotoPage={[Function]}
+    isVisible={true}
+    nodes={
+      Object {
+        "1": Object {
+          "children": Object {
+            "count": 0,
+            "items": Array [],
+          },
+          "id": 0,
+          "isError": false,
+          "isFetchingChildren": true,
+          "isFetchingTranslations": false,
+          "meta": Object {
+            "children": Object {},
+            "parent": null,
+            "status": Object {
+              "has_unpublished_changes": true,
+              "live": false,
+              "status": "",
+            },
+          },
+        },
+      }
+    }
+    onClose={[Function]}
+    store={
+      Object {
+        "dispatch": [Function],
+        "getState": [Function],
+        "replaceReducer": [Function],
+        "subscribe": [Function],
+        Symbol(observable): [Function],
+      }
+    }
+  />
+</ContextProvider>
+`;
+
+exports[`Explorer visible 2`] = `
 <Explorer
   currentPageId={1}
   depth={0}
@@ -79,78 +141,6 @@ exports[`Explorer visible 1`] = `
       "replaceReducer": [Function],
       "subscribe": [Function],
       Symbol(observable): [Function],
-    }
-  }
-  storeSubscription={
-    Subscription {
-      "listeners": Object {
-        "clear": [Function],
-        "get": [Function],
-        "notify": [Function],
-        "subscribe": [Function],
-      },
-      "onStateChange": [Function],
-      "parentSub": undefined,
-      "store": Object {
-        "dispatch": [Function],
-        "getState": [Function],
-        "replaceReducer": [Function],
-        "subscribe": [Function],
-        Symbol(observable): [Function],
-      },
-      "unsubscribe": [Function],
-    }
-  }
-/>
-`;
-
-exports[`Explorer visible 2`] = `
-<ExplorerPanel
-  depth={0}
-  gotoPage={[Function]}
-  nodes={
-    Object {
-      "1": Object {
-        "children": Object {
-          "count": 0,
-          "items": Array [],
-        },
-        "id": 0,
-        "isError": false,
-        "isFetchingChildren": true,
-        "isFetchingTranslations": false,
-        "meta": Object {
-          "children": Object {},
-          "parent": null,
-          "status": Object {
-            "has_unpublished_changes": true,
-            "live": false,
-            "status": "",
-          },
-        },
-      },
-    }
-  }
-  onClose={[Function]}
-  page={
-    Object {
-      "children": Object {
-        "count": 0,
-        "items": Array [],
-      },
-      "id": 0,
-      "isError": false,
-      "isFetchingChildren": true,
-      "isFetchingTranslations": false,
-      "meta": Object {
-        "children": Object {},
-        "parent": null,
-        "status": Object {
-          "has_unpublished_changes": true,
-          "live": false,
-          "status": "",
-        },
-      },
     }
   }
 />
